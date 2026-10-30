@@ -16,8 +16,11 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const MAX_FREE_PAGES = 25;
 
-// Tu clave secreta de dueño (para acceso PRO vitalicio sin pagar)
+// Clave maestra vitalicia de Propietario
 const OWNER_MASTER_KEY = 'DOCAPP-OWNER-2026';
+
+// Claves de cortesía adicionales para promociones o regalos directos
+const COURTESY_KEYS = ['DOCAPP-VIP-GIFT', 'DOCAPP-CORTE-2026', 'DOCAPP-PARTNER-PRO'];
 
 export default function App() {
   const [pages, setPages] = useState([]);
@@ -36,21 +39,22 @@ export default function App() {
   const replaceInputRef = useRef(null);
   const [targetReplaceId, setTargetReplaceId] = useState(null);
 
-  // Verificación de Licencia Guardada al Iniciar
+  // 1. Verificación de Licencia Guardada al Iniciar
   useEffect(() => {
     const stored = localStorage.getItem('docapp_license_data');
     if (!stored) return;
 
     try {
       const data = JSON.parse(stored);
-      // Licencia de Dueño
-      if (data.isOwner) {
+      
+      // Acceso de Dueño o Cortesía Vitalicia
+      if (data.isOwner || data.isCourtesy) {
         setIsPro(true);
         setLicenseData(data);
         return;
       }
 
-      // Verificación de expiración (Pase 24h, mensual o anual)
+      // Verificación de expiración temporal (Pase 24h, mensual o anual)
       if (data.expiresAt) {
         const expirationDate = new Date(data.expiresAt);
         const now = new Date();
@@ -69,7 +73,7 @@ export default function App() {
     }
   }, []);
 
-  // Activación de Licencias (Lemon Squeezy API + Dueño)
+  // 2. Activación de Licencias (Lemon Squeezy API + Llaves Especiales)
   const handleActivateLicense = async (key) => {
     if (!key) {
       setActiveModal('pricing');
@@ -78,7 +82,7 @@ export default function App() {
 
     const cleanKey = key.trim();
 
-    // 1. Acceso de Dueño
+    // A. Validación de Clave Maestra de Dueño
     if (cleanKey.toUpperCase() === OWNER_MASTER_KEY) {
       const ownerData = {
         key: cleanKey,
@@ -94,13 +98,28 @@ export default function App() {
       return;
     }
 
-    // 2. Validación de Clave en Lemon Squeezy
+    // B. Validación de Claves de Cortesía Directas
+    if (COURTESY_KEYS.includes(cleanKey.toUpperCase())) {
+      const courtesyData = {
+        key: cleanKey,
+        plan: 'Licencia Cortesía Corporativa',
+        isCourtesy: true,
+        activatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('docapp_license_data', JSON.stringify(courtesyData));
+      setIsPro(true);
+      setLicenseData(courtesyData);
+      setActiveModal(null);
+      alert('¡Licencia de Cortesía PRO activada exitosamente!');
+      return;
+    }
+
+    // C. Validación en vivo mediante API de Lemon Squeezy
     setIsLoading(true);
     setLoadingText('Validando clave con Lemon Squeezy...');
-    setLoadingSubText('Consultando estado del pago...');
+    setLoadingSubText('Consultando registro internacional de pagos...');
 
     try {
-      // Generar o reutilizar un ID único para la máquina del cliente
       let instanceId = localStorage.getItem('docapp_instance_id');
       if (!instanceId) {
         instanceId = 'web_' + Math.random().toString(36).substring(2, 11);
@@ -127,7 +146,7 @@ export default function App() {
           instanceId: result.instance?.id,
           productName: result.meta?.product_name || 'DocApp PRO',
           customerEmail: result.meta?.customer_email,
-          expiresAt: result.license_key?.expires_at, // Fecha límite enviada por Lemon Squeezy
+          expiresAt: result.license_key?.expires_at,
           activatedAt: new Date().toISOString(),
           isOwner: false
         };
@@ -148,13 +167,13 @@ export default function App() {
     }
   };
 
-  // Carga de Archivos Locales
+  // 3. Carga y Desglose de Archivos (Fusión Multi-PDF)
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
     setIsLoading(true);
-    setLoadingText('Asegurando entorno de memoria...');
+    setLoadingText('Asegurando entorno de memoria local...');
 
     try {
       const newPagesList = [...pages];
@@ -163,11 +182,12 @@ export default function App() {
         let fileBytes;
         let sourceName = file.name;
 
+        // Desencriptación en memoria si es Bóveda .ENC
         if (file.name.endsWith('.enc')) {
           const pass = prompt(`Bóveda Asegurada: [${file.name}]\nIngresa la contraseña criptográfica:`);
           if (!pass) continue;
 
-          setLoadingSubText('Desencriptando AES-GCM local...');
+          setLoadingSubText('Desencriptando AES-GCM localmente...');
           const arrayBuffer = await file.arrayBuffer();
           fileBytes = await desencriptarWebCrypto(arrayBuffer, pass);
           sourceName = file.name.replace('.enc', ' (Desencriptado)');
@@ -178,7 +198,7 @@ export default function App() {
           const isPDF = headerString.includes('%PDF-');
           
           if (!isPDF) {
-            alert(`El archivo "${file.name}" no cuenta con una estructura PDF válida.`);
+            alert(`El archivo "${file.name}" no cuenta con una estructura PDF estándar válida.`);
             continue;
           }
           fileBytes = new Uint8Array(arrayBuffer);
@@ -190,18 +210,21 @@ export default function App() {
         });
         const pdf = await loadingTask.promise;
 
+        // Límite del plan gratuito
         if (!isPro && newPagesList.length + pdf.numPages > MAX_FREE_PAGES) {
-          alert(`El plan básico gratuito permite hasta ${MAX_FREE_PAGES} páginas. Activa el pase PRO para procesar expedientes ilimitados.`);
+          alert(`El modo libre permite gestionar hasta ${MAX_FREE_PAGES} páginas a la vez. Activa el pase PRO para procesar expedientes masivos ilimitados.`);
           setActiveModal('pricing');
           break;
         }
 
         for (let i = 1; i <= pdf.numPages; i++) {
-          setLoadingSubText(`Procesando foja ${i} de ${pdf.numPages}...`);
+          setLoadingSubText(`Indexando foja ${i} de ${pdf.numPages} (${file.name})...`);
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 0.5 });
+          
+          // Escala optimizada para miniaturas nítidas en pantalla
+          const viewport = page.getViewport({ scale: 0.8 });
           const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext('2d', { alpha: false });
           canvas.height = viewport.height;
           canvas.width = viewport.width;
 
@@ -213,7 +236,7 @@ export default function App() {
             pageIndex: i - 1,
             sourceName: sourceName,
             originalPageNumber: i,
-            previewUrl: canvas.toDataURL('image/jpeg', 0.8),
+            previewUrl: canvas.toDataURL('image/jpeg', 0.85),
             rotation: 0,
             isBlank: false
           });
@@ -223,17 +246,19 @@ export default function App() {
       setPages(newPagesList);
     } catch (err) {
       console.error(err);
-      alert('Error al leer el archivo. Comprueba que no tenga claves de lectura.');
+      alert('Error al leer el archivo. Comprueba que el PDF no tenga contraseñas de apertura por permisos.');
     } finally {
       setIsLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // Reemplazar Foja
+  // 4. Reemplazo de Foja Específica
   const handleReplaceInit = (id) => {
     setTargetReplaceId(id);
-    replaceInputRef.current.click();
+    if (replaceInputRef.current) {
+      replaceInputRef.current.click();
+    }
   };
 
   const handleReplaceFile = async (e) => {
@@ -251,9 +276,13 @@ export default function App() {
       const pdf = await loadingTask.promise;
       const page = await pdf.getPage(1);
       
-      const viewport = page.getViewport({ scale: 0.5 });
+      const viewport = page.getViewport({ scale: 0.8 });
       const canvas = document.createElement('canvas');
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      await page.render({ canvasContext: ctx, viewport: viewport }).promise;
       
       const targetIdx = pages.findIndex(p => p.id === targetReplaceId);
       if (targetIdx !== -1) {
@@ -264,7 +293,7 @@ export default function App() {
           pageIndex: 0,
           sourceName: file.name,
           originalPageNumber: 1,
-          previewUrl: canvas.toDataURL('image/jpeg', 0.8),
+          previewUrl: canvas.toDataURL('image/jpeg', 0.85),
           rotation: 0,
           isBlank: false
         };
@@ -274,18 +303,18 @@ export default function App() {
       alert('Error al sustituir la foja.');
     } finally {
       setIsLoading(false);
-      replaceInputRef.current.value = '';
+      if (replaceInputRef.current) replaceInputRef.current.value = '';
       setTargetReplaceId(null);
     }
   };
 
-  // Extraer Foja Original
+  // 5. Extracción de Foja Original sin Foliar
   const handleExtractPage = async (id) => {
     const pageData = pages.find(p => p.id === id);
     if (!pageData || pageData.isBlank) return;
 
     setIsLoading(true);
-    setLoadingText('Extrayendo foja original sin marcas...');
+    setLoadingText('Extrayendo foja en formato nativo sin marcas...');
     try {
       const pdfFinal = await PDFDocument.create();
       const sourceDoc = await PDFDocument.load(pageData.fileData.slice(0));
@@ -304,6 +333,7 @@ export default function App() {
     }
   };
 
+  // 6. Manipulaciones de Fojas en Mesa
   const handleRotate = (id) => {
     setPages(pages.map(p => p.id === id ? { ...p, rotation: (p.rotation + 90) % 360 } : p));
   };
@@ -346,17 +376,18 @@ export default function App() {
         pageIndex: -1,
         sourceName: 'Hoja en Blanco',
         originalPageNumber: '-',
-        previewUrl: canvas.toDataURL('image/jpeg', 0.8),
+        previewUrl: canvas.toDataURL('image/jpeg', 0.85),
         rotation: 0,
         isBlank: true
       }
     ]);
   };
 
+  // 7. Exportación y Compilación del Documento Unificado
   const handleExportMaster = async () => {
     setActiveModal(null);
     setIsLoading(true);
-    setLoadingText('Ensamblando Expediente Master...');
+    setLoadingText('Ensamblando y cosiendo Expediente Master...');
     try {
       const bytes = await generarBytesMaster(pages, isPro, watermarkEnabled, folioEnabled);
       descargarBlob(bytes, `Expediente_Master_${Date.now()}.pdf`, 'application/pdf');
@@ -370,7 +401,7 @@ export default function App() {
   const handleExportZip = async () => {
     setActiveModal(null);
     setIsLoading(true);
-    setLoadingText('Comprimiendo folios individuales...');
+    setLoadingText('Comprimiendo fojas individuales...');
     try {
       const zip = new JSZip();
       const folder = zip.folder("Expediente_Desglosado");
@@ -406,7 +437,7 @@ export default function App() {
   const handleExportVault = async (password) => {
     setActiveModal(null);
     setIsLoading(true);
-    setLoadingText('Aplicando cifrado WebCrypto AES-GCM...');
+    setLoadingText('Aplicando cifrado WebCrypto AES-256-GCM...');
     try {
       const bytes = await generarBytesMaster(pages, isPro, watermarkEnabled, folioEnabled);
       const vaultBlob = await encriptarWebCrypto(bytes, password);
@@ -421,7 +452,7 @@ export default function App() {
   const handleShareEmail = async () => {
     setActiveModal(null);
     setIsLoading(true);
-    setLoadingText('Preparando archivo para despacho por correo...');
+    setLoadingText('Preparando documento para despacho formal...');
     try {
       const bytes = await generarBytesMaster(pages, isPro, watermarkEnabled, folioEnabled);
       const fileName = `Expediente_Foliado_${Date.now()}.pdf`;
@@ -430,14 +461,14 @@ export default function App() {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'Expediente Foliado',
-          text: `Se acompaña expediente compilado de ${pages.length} fojas.`
+          title: 'Expediente Unificado y Foliado',
+          text: `Se acompaña expediente consolidado de ${pages.length} fojas.`
         });
       } else {
         descargarBlob(bytes, fileName, 'application/pdf');
         const subject = encodeURIComponent(`Envío de Expediente Foliado (${pages.length} fojas)`);
         const body = encodeURIComponent(
-          `Estimados/as,\n\nSe adjunta el expediente consolidado y foliado de ${pages.length} fojas.\n\nEl documento ha sido compilado en memoria local sin almacenamiento en nubes públicas.\n\nDocApp Legal Tech.`
+          `Estimados/as,\n\nSe adjunta el expediente unificado y foliado correspondiente (${pages.length} fojas).\n\nEl documento ha sido compilado en memoria local sin almacenamiento en nubes públicas, bajo estricto cumplimiento normativo.\n\nDocApp Legal Tech.`
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
       }
@@ -451,12 +482,12 @@ export default function App() {
   const handleCopySummary = () => {
     const summary = 
 `--- CERTIFICADO DE INTEGRIDAD DOCUMENTAL ---
-Fecha: ${new Date().toLocaleDateString('es-CL')}
+Fecha de Emisión: ${new Date().toLocaleDateString('es-CL')}
 Total de Fojas: ${pages.length}
 Foliación Aplicada: ${folioEnabled && isPro ? 'Sí (Correlativa)' : 'Sin foliar'}
 Sello de Confidencialidad: ${watermarkEnabled && isPro ? 'Activo' : 'Inactivo'}
 Entorno de Procesamiento: 100% Client-Side (Cumplimiento Ley N° 21.719)
-Generado por: DocApp`;
+Generado por: DocApp Legal v3.2 Enterprise`;
     navigator.clipboard.writeText(summary);
   };
 
@@ -485,6 +516,7 @@ Generado por: DocApp`;
         onAddFiles={() => fileInputRef.current.click()}
         onOpenExport={() => setActiveModal('export')}
         onOpenPricing={() => setActiveModal('pricing')}
+        onOpenHelp={() => setActiveModal('help')}
       />
 
       <div className="flex flex-1 overflow-hidden">

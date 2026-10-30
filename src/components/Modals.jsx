@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { 
   X, Check, Lock, Download, Archive, 
   ShieldAlert, ArrowLeft, Key, Scale, 
-  Compass, ShieldCheck, CheckCircle2, Mail, Copy
+  Compass, ShieldCheck, CheckCircle2, Mail, Copy,
+  HelpCircle, Files, Sparkles, BookOpen, ArrowRight,
+  Shield, Layers, Eye
 } from 'lucide-react';
 import { checkPasswordStrength } from '../utils/cryptoService';
 
@@ -67,7 +69,7 @@ export default function Modals({
               </div>
               <button 
                 onClick={() => window.open('https://docapp.lemonsqueezy.com/checkout/buy/d471855d-199f-463d-ba9d-2c9662da67c3', '_blank')} 
-                className="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold transition"
+                className="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold transition cursor-pointer"
               >
                 Comprar Pase
               </button>
@@ -90,7 +92,7 @@ export default function Modals({
               </div>
               <button 
                 onClick={() => window.open('https://docapp.lemonsqueezy.com/checkout/buy/523ea087-70d1-4223-bdb5-1b3570a54ef7', '_blank')} 
-                className="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold transition"
+                className="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold transition cursor-pointer"
               >
                 Suscribir Plan
               </button>
@@ -116,7 +118,7 @@ export default function Modals({
               </div>
               <button 
                 onClick={() => window.open('https://docapp.lemonsqueezy.com/checkout/buy/0fcbbba4-48f4-491d-b228-c065d1c4c38e', '_blank')} 
-                className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition shadow-md shadow-indigo-600/30"
+                className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition shadow-md shadow-indigo-600/30 cursor-pointer"
               >
                 Activar Plan Anual
               </button>
@@ -136,7 +138,7 @@ export default function Modals({
               />
               <button 
                 onClick={() => onActivateLicense(licenseKeyInput)} 
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition cursor-pointer"
               >
                 Activar Licencia
               </button>
@@ -164,7 +166,7 @@ export default function Modals({
           <div className="space-y-2.5">
             <button 
               onClick={onExportMaster}
-              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-indigo-950/40 border border-slate-700 hover:border-indigo-500/80 rounded-xl transition text-left group"
+              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-indigo-950/40 border border-slate-700 hover:border-indigo-500/80 rounded-xl transition text-left group cursor-pointer"
             >
               <div className="flex items-center gap-3.5">
                 <div className="p-2.5 bg-slate-700 rounded-lg group-hover:bg-indigo-600 transition text-indigo-300 group-hover:text-white">
@@ -182,7 +184,7 @@ export default function Modals({
 
             <button 
               onClick={isPro ? onExportZip : () => onActivateLicense(null)}
-              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-emerald-950/30 border border-slate-700 hover:border-emerald-500/80 rounded-xl transition text-left group"
+              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-emerald-950/30 border border-slate-700 hover:border-emerald-500/80 rounded-xl transition text-left group cursor-pointer"
             >
               <div className="flex items-center gap-3.5">
                 <div className="p-2.5 bg-slate-700 rounded-lg group-hover:bg-emerald-600 transition text-emerald-300 group-hover:text-white relative">
@@ -204,7 +206,7 @@ export default function Modals({
 
             <button 
               onClick={isPro ? onSwitchToPasswordModal : () => onActivateLicense(null)}
-              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-amber-950/30 border border-slate-700 hover:border-amber-500/80 rounded-xl transition text-left group"
+              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-amber-950/30 border border-slate-700 hover:border-amber-500/80 rounded-xl transition text-left group cursor-pointer"
             >
               <div className="flex items-center gap-3.5">
                 <div className="p-2.5 bg-slate-700 rounded-lg group-hover:bg-amber-600 transition text-amber-300 group-hover:text-white relative">
@@ -226,7 +228,7 @@ export default function Modals({
 
             <button 
               onClick={onShareEmail}
-              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-sky-950/30 border border-slate-700 hover:border-sky-500/80 rounded-xl transition text-left group"
+              className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-sky-950/30 border border-slate-700 hover:border-sky-500/80 rounded-xl transition text-left group cursor-pointer"
             >
               <div className="flex items-center gap-3.5">
                 <div className="p-2.5 bg-slate-700 rounded-lg group-hover:bg-sky-600 transition text-sky-300 group-hover:text-white">
@@ -247,7 +249,7 @@ export default function Modals({
             <span className="text-[11px]">¿Necesitas la minuta para el escrito o guía?</span>
             <button 
               onClick={handleCopyAction}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-slate-700 rounded-lg text-[11px] font-medium transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-slate-700 rounded-lg text-[11px] font-medium transition cursor-pointer"
             >
               {copiedSuccess ? (
                 <>
@@ -297,7 +299,7 @@ export default function Modals({
           <button 
             disabled={!passStrength.isValid}
             onClick={() => onExportVault(passwordInput)}
-            className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold transition shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold transition shadow-md disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
             Bloquear con AES-256-GCM y Descargar
           </button>
@@ -459,9 +461,123 @@ export default function Modals({
           <div className="mt-4 pt-3 border-t border-slate-800 text-right shrink-0">
             <button 
               onClick={onClose} 
-              className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition border border-slate-700"
+              className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition border border-slate-700 cursor-pointer"
             >
               Comprendido y Aceptado
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 7. MODAL INSTRUCTIVO / ¿CÓMO FUNCIONA? */}
+      {activeModal === 'help' && (
+        <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-2xl w-full shadow-2xl relative max-h-[85vh] flex flex-col">
+          <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white transition cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="flex items-center gap-3 mb-5 shrink-0">
+            <div className="p-2.5 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-xl text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/20">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                Guía Rápida de DocApp Legal
+              </h2>
+              <p className="text-xs text-slate-400">
+                Aprende a unir PDFs, intercalar fojas y compilar expedientes oficiales en 3 pasos simples.
+              </p>
+            </div>
+          </div>
+
+          <div className="overflow-y-auto space-y-3.5 text-xs text-slate-300 pr-1">
+            
+            {/* Paso 1 */}
+            <div className="p-4 bg-slate-800/70 border border-slate-700/80 rounded-xl relative overflow-hidden group hover:border-indigo-500/60 transition">
+              <div className="flex items-start gap-3.5">
+                <div className="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 font-bold flex items-center justify-center shrink-0 text-xs">
+                  1
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+                    <Files className="w-3.5 h-3.5 text-indigo-400" /> Carga y Fusión Automática de Documentos
+                  </h3>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    Haz clic en <strong>"Unir / Cargar PDFs"</strong> o arrastra múltiples archivos a la mesa (por ejemplo: demandas, contratos, certificados o anexos). DocApp desglosa cada hoja de forma individual para que puedas combinarlas a voluntad.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Paso 2 */}
+            <div className="p-4 bg-slate-800/70 border border-slate-700/80 rounded-xl relative overflow-hidden group hover:border-indigo-500/60 transition">
+              <div className="flex items-start gap-3.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 font-bold flex items-center justify-center shrink-0 text-xs">
+                  2
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-emerald-400" /> Ordena, Intercala y Aplica Foliación
+                  </h3>
+                  <p className="text-slate-300 text-[11px] leading-relaxed mb-2">
+                    Arrastra las hojas con el ratón para intercalarlas o cambiar su orden. En la barra lateral izquierda puedes:
+                  </p>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300">
+                    <li className="flex items-center gap-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span><strong>Foliar (F. 001):</strong> Numeración correlativa judicial.</span>
+                    </li>
+                    <li className="flex items-center gap-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span><strong>Confidencial:</strong> Sello traslúcido institucional.</span>
+                    </li>
+                    <li className="flex items-center gap-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span><strong>Lupa 4K:</strong> Revisa el texto y firmas en alta nitidez.</span>
+                    </li>
+                    <li className="flex items-center gap-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span><strong>Hoja Blanca:</strong> Inserta separadores de pieza.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Paso 3 */}
+            <div className="p-4 bg-slate-800/70 border border-slate-700/80 rounded-xl relative overflow-hidden group hover:border-indigo-500/60 transition">
+              <div className="flex items-start gap-3.5">
+                <div className="w-7 h-7 rounded-lg bg-sky-600/20 border border-sky-500/40 text-sky-300 font-bold flex items-center justify-center shrink-0 text-xs">
+                  3
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+                    <Download className="w-3.5 h-3.5 text-sky-400" /> Exporta el Expediente Consolidado
+                  </h3>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    Presiona el botón superior <strong>"Exportar PDF Unificado"</strong>. Podrás generar el <strong>PDF Master único</strong> cosido con numeración correlativa, un <strong>archivo ZIP</strong> con cada foja suelta o una <strong>Bóveda .ENC</strong> protegida con clave criptográfica militar.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Banner de Garantía de Privacidad */}
+            <div className="p-3.5 bg-emerald-950/30 border border-emerald-800/50 rounded-xl flex items-center gap-3 text-emerald-300">
+              <Shield className="w-5 h-5 shrink-0 text-emerald-400" />
+              <p className="text-[11px] leading-relaxed">
+                <strong>Soberanía Total:</strong> Todo el proceso transcurre en la memoria RAM de tu navegador. Ningún documento se transmite a servidores externos (Cumplimiento estricto Ley N° 21.719).
+              </p>
+            </div>
+
+          </div>
+
+          <div className="mt-4 pt-3.5 border-t border-slate-800 flex justify-between items-center shrink-0">
+            <span className="text-[11px] text-slate-400">DocApp Legal Tech · v3.2 Enterprise</span>
+            <button 
+              onClick={onClose} 
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition shadow-md shadow-indigo-600/20 cursor-pointer"
+            >
+              Comenzar a Trabajar
             </button>
           </div>
         </div>
