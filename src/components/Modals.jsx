@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { 
   X, Check, Lock, Download, Archive, 
-  ShieldAlert, ArrowLeft, Key, Eye, Scale, 
-  Compass, ShieldCheck, CheckCircle2, Mail, Copy, Share2
+  ShieldAlert, ArrowLeft, Key, Scale, 
+  Compass, ShieldCheck, CheckCircle2, Mail, Copy
 } from 'lucide-react';
 import { checkPasswordStrength } from '../utils/cryptoService';
 
@@ -43,76 +43,79 @@ export default function Modals({
           </button>
 
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-white">Licencias Profesionales DocApp</h2>
+            <h2 className="text-xl font-bold text-white">Planes y Licencias Profesionales</h2>
             <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-              Foliado, foliación inversa y cifrado blindado sin transferir causas ni fojas a servidores externos.
+              Foliado automático, marcas de reserva y cifrado blindado para empresas, estudios jurídicos, logística y call centers.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-6">
+            {/* Pase 24 Horas */}
             <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between hover:border-slate-500 transition">
               <div>
                 <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Urgencias</span>
                 <h3 className="font-bold text-white text-sm mt-1">Pase 24 Horas</h3>
                 <div className="mt-2 mb-3">
-                  <span className="text-2xl font-extrabold text-white">$2</span>
-                  <span className="text-xs text-slate-400"> USD</span>
+                  <span className="text-2xl font-extrabold text-white">$2.000</span>
+                  <span className="text-xs text-slate-400"> CLP</span>
                 </div>
                 <ul className="text-[11px] text-slate-300 space-y-1.5">
                   <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Fojas ilimitadas</li>
-                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Foliador OJV habilitado</li>
-                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Validez por 24 hrs</li>
+                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Foliador correlativo</li>
+                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Acceso por 24 horas</li>
                 </ul>
               </div>
               <button 
-                onClick={() => window.open('https://tu-link-de-pago.com/pase24h', '_blank')} 
+                onClick={() => window.open('https://docapp.lemonsqueezy.com/checkout/buy/d471855d-199f-463d-ba9d-2c9662da67c3', '_blank')} 
                 className="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold transition"
               >
                 Comprar Pase
               </button>
             </div>
 
+            {/* Mensual */}
             <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between hover:border-slate-500 transition">
               <div>
-                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Litigación Continua</span>
-                <h3 className="font-bold text-white text-sm mt-1">Suscripción Mensual</h3>
+                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Flujo Continuo</span>
+                <h3 className="font-bold text-white text-sm mt-1">Plan Mensual</h3>
                 <div className="mt-2 mb-3">
-                  <span className="text-2xl font-extrabold text-white">$5</span>
-                  <span className="text-xs text-slate-400"> USD/mes</span>
+                  <span className="text-2xl font-extrabold text-white">$4.990</span>
+                  <span className="text-xs text-slate-400"> CLP/mes</span>
                 </div>
                 <ul className="text-[11px] text-slate-300 space-y-1.5">
                   <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Expedientes ilimitados</li>
-                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Bóvedas criptográficas</li>
-                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Sin contratos forzosos</li>
+                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Desglose ZIP y .ENC</li>
+                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Cancela cuando quieras</li>
                 </ul>
               </div>
               <button 
-                onClick={() => window.open('https://tu-link-de-pago.com/mensual', '_blank')} 
+                onClick={() => window.open('https://docapp.lemonsqueezy.com/checkout/buy/523ea087-70d1-4223-bdb5-1b3570a54ef7', '_blank')} 
                 className="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold transition"
               >
                 Suscribir Plan
               </button>
             </div>
 
+            {/* Anual */}
             <div className="bg-gradient-to-b from-indigo-950/70 to-slate-900 border-2 border-indigo-500 rounded-xl p-4 flex flex-col justify-between shadow-lg shadow-indigo-500/10 relative">
               <span className="absolute -top-2.5 right-3 bg-indigo-600 text-[10px] font-bold text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow">
                 Ahorra 35%
               </span>
               <div>
-                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Estudios Jurídicos</span>
+                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Corporativo</span>
                 <h3 className="font-bold text-white text-sm mt-1">Plan Anual</h3>
                 <div className="mt-2 mb-3">
-                  <span className="text-2xl font-extrabold text-white">$39</span>
-                  <span className="text-xs text-slate-400"> USD/año</span>
+                  <span className="text-2xl font-extrabold text-white">$39.000</span>
+                  <span className="text-xs text-slate-400"> CLP/año</span>
                 </div>
                 <ul className="text-[11px] text-slate-300 space-y-1.5">
                   <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Todo incluido sin topes</li>
-                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Equivale a $3.25 USD/mes</li>
-                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> SLA de soporte prioritario</li>
+                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Equivalente a ~$3.250/mes</li>
+                  <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Facturación formal y SLA</li>
                 </ul>
               </div>
               <button 
-                onClick={() => window.open('https://tu-link-de-pago.com/anual', '_blank')} 
+                onClick={() => window.open('https://docapp.lemonsqueezy.com/checkout/buy/0fcbbba4-48f4-491d-b228-c065d1c4c38e', '_blank')} 
                 className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition shadow-md shadow-indigo-600/30"
               >
                 Activar Plan Anual
@@ -120,28 +123,29 @@ export default function Modals({
             </div>
           </div>
 
+          {/* Validador de Licencia */}
           <div className="border-t border-slate-800 pt-4">
-            <p className="text-xs text-slate-400 mb-2 font-medium">¿Ya recibiste tu clave de activación? Ingrésala aquí:</p>
+            <p className="text-xs text-slate-400 mb-2 font-medium">¿Ya compraste tu licencia? Pega aquí la clave que recibiste por correo:</p>
             <div className="flex gap-2">
               <input 
                 type="text" 
                 value={licenseKeyInput}
                 onChange={(e) => setLicenseKeyInput(e.target.value)}
-                placeholder="Ej: DOCAPP-PRO-LEGAL" 
+                placeholder="Ej: 3d8a7c2e-4b11-4f9e-8219-abcdef123456" 
                 className="flex-1 bg-slate-950 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 uppercase font-mono"
               />
               <button 
                 onClick={() => onActivateLicense(licenseKeyInput)} 
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition"
               >
-                Validar Licencia
+                Activar Licencia
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 2. MODAL EXPORTAR (CENTRO DE DESPACHO Y EXPORTACIÓN) */}
+      {/* 2. MODAL EXPORTAR */}
       {activeModal === 'export' && (
         <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-xl w-full shadow-2xl relative">
           <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white transition">
@@ -153,12 +157,11 @@ export default function Modals({
               <Download className="text-indigo-400 w-5 h-5" /> Centro de Despacho y Exportación
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Expediente preparado: <span className="text-white font-semibold">{pagesCount} fojas</span> procesadas en memoria local.
+              Documento compilado: <span className="text-white font-semibold">{pagesCount} fojas</span> en memoria segura.
             </p>
           </div>
 
           <div className="space-y-2.5">
-            {/* Opción 1: PDF Master */}
             <button 
               onClick={onExportMaster}
               className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-indigo-950/40 border border-slate-700 hover:border-indigo-500/80 rounded-xl transition text-left group"
@@ -169,7 +172,7 @@ export default function Modals({
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-xs">Expediente PDF Master Consolidado</h3>
-                  <p className="text-[11px] text-slate-400">Archivo único oficial con foliación y sellos para OJV o archivo notarial.</p>
+                  <p className="text-[11px] text-slate-400">Archivo único oficial con foliación correlativa y timbres.</p>
                 </div>
               </div>
               <span className="text-[10px] bg-slate-700 group-hover:bg-indigo-600 text-slate-300 group-hover:text-white px-2 py-1 rounded font-medium transition">
@@ -177,7 +180,6 @@ export default function Modals({
               </span>
             </button>
 
-            {/* Opción 2: ZIP / WinRAR */}
             <button 
               onClick={isPro ? onExportZip : () => onActivateLicense(null)}
               className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-emerald-950/30 border border-slate-700 hover:border-emerald-500/80 rounded-xl transition text-left group"
@@ -192,7 +194,7 @@ export default function Modals({
                     <h3 className="font-semibold text-white text-xs">Paquete ZIP / WinRAR (Fojas Sueltas)</h3>
                     {!isPro && <span className="text-[9px] text-amber-400 font-bold uppercase">PRO</span>}
                   </div>
-                  <p className="text-[11px] text-slate-400">Desglosa cada foja en un PDF individual numerado (Folio_001.pdf...).</p>
+                  <p className="text-[11px] text-slate-400">Desglosa cada foja en un PDF individual numerado.</p>
                 </div>
               </div>
               <span className="text-[10px] bg-slate-700 group-hover:bg-emerald-600 text-slate-300 group-hover:text-white px-2 py-1 rounded font-medium transition">
@@ -200,7 +202,6 @@ export default function Modals({
               </span>
             </button>
 
-            {/* Opción 3: Bóveda Cifrada */}
             <button 
               onClick={isPro ? onSwitchToPasswordModal : () => onActivateLicense(null)}
               className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-amber-950/30 border border-slate-700 hover:border-amber-500/80 rounded-xl transition text-left group"
@@ -215,7 +216,7 @@ export default function Modals({
                     <h3 className="font-semibold text-white text-xs">Bóveda Cifrada AES-256-GCM</h3>
                     {!isPro && <span className="text-[9px] text-amber-400 font-bold uppercase">PRO</span>}
                   </div>
-                  <p className="text-[11px] text-slate-400">Protección con contraseña contra accesos no autorizados en traslados.</p>
+                  <p className="text-[11px] text-slate-400">Protección con clave contra accesos no autorizados en traslados.</p>
                 </div>
               </div>
               <span className="text-[10px] bg-slate-700 group-hover:bg-amber-600 text-slate-300 group-hover:text-white px-2 py-1 rounded font-medium transition">
@@ -223,7 +224,6 @@ export default function Modals({
               </span>
             </button>
 
-            {/* Opción 4: Despacho por Correo / Compartir Directo */}
             <button 
               onClick={onShareEmail}
               className="w-full flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-sky-950/30 border border-slate-700 hover:border-sky-500/80 rounded-xl transition text-left group"
@@ -234,7 +234,7 @@ export default function Modals({
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-xs">Despachar por Correo Electrónico</h3>
-                  <p className="text-[11px] text-slate-400">Abre Outlook o tu cliente de correo con el PDF adjunto y plantilla redactada.</p>
+                  <p className="text-[11px] text-slate-400">Abre el cliente de correo con el archivo preparado y minuta lista.</p>
                 </div>
               </div>
               <span className="text-[10px] bg-slate-700 group-hover:bg-sky-600 text-slate-300 group-hover:text-white px-2 py-1 rounded font-medium transition">
@@ -243,9 +243,8 @@ export default function Modals({
             </button>
           </div>
 
-          {/* Opción 5: Copiar Certificado / Minuta de Foliado */}
           <div className="mt-4 pt-3.5 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-            <span className="text-[11px]">¿Necesitas la minuta para el escrito judicial?</span>
+            <span className="text-[11px]">¿Necesitas la minuta para el escrito o guía?</span>
             <button 
               onClick={handleCopyAction}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-slate-700 rounded-lg text-[11px] font-medium transition"
@@ -277,7 +276,7 @@ export default function Modals({
             <Key className="text-amber-400 w-4 h-4" /> Cifrado Criptográfico Local
           </h2>
           <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">
-            Se generará una derivación de clave con <strong>600.000 iteraciones PBKDF2</strong>. Debido a que no almacenamos llaves, la pérdida de esta contraseña imposibilitará abrir el archivo.
+            Se generará una derivación con <strong>600.000 iteraciones PBKDF2</strong>. DocApp no almacena llaves; si olvidas esta clave el archivo no se podrá recuperar.
           </p>
 
           <input 
@@ -318,7 +317,7 @@ export default function Modals({
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Nuestra Identidad Institucional</h2>
-              <p className="text-xs text-slate-400">Soberanía de datos para auxiliares de la administración de justicia</p>
+              <p className="text-xs text-slate-400">Soberanía y custodia absoluta de documentos críticos</p>
             </div>
           </div>
 
@@ -328,7 +327,7 @@ export default function Modals({
                 <CheckCircle2 className="w-4 h-4 text-indigo-400" /> Nuestra Misión
               </h3>
               <p className="leading-relaxed text-slate-300">
-                Proveer herramientas de gestión procesal de alto desempeño para abogados, notarías y receptores judiciales, asegurando que la digitalización y el foliado de expedientes no vulnere el <strong>secreto profesional ni la custodia de documentos confidenciales</strong>.
+                Proveer herramientas de gestión documental transversal (jurídica, tributaria, logística y corporativa), garantizando que la digitalización, ordenamiento y foliado se ejecuten sin quebrantar el <strong>secreto profesional ni las normativas de protección de datos</strong>.
               </p>
             </div>
 
@@ -337,7 +336,7 @@ export default function Modals({
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Nuestra Visión
               </h3>
               <p className="leading-relaxed text-slate-300">
-                Erradicar el uso de plataformas que capturan y almacenan documentos legales en nubes públicas, consolidando a DocApp como el estándar en computación local (Client-Side) bajo el principio de <strong>Zero-Knowledge Architecture</strong>.
+                Eliminar la dependencia de servicios que capturan y almacenan documentos confidenciales en nubes públicas, consolidando a DocApp como el referente en computación en el extremo (Client-Side) bajo arquitectura <strong>Zero-Knowledge</strong>.
               </p>
             </div>
 
@@ -347,13 +346,13 @@ export default function Modals({
               </h3>
               <ul className="space-y-2 text-slate-300">
                 <li className="flex items-start gap-2">
-                  <span className="font-bold text-white">1. Privacidad Física:</span> Los documentos residen únicamente en la memoria RAM del equipo de trabajo.
+                  <span className="font-bold text-white">1. Procesamiento Aislado:</span> Los documentos residen únicamente en la memoria RAM del dispositivo.
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="font-bold text-white">2. Independencia Tecnológica:</span> La aplicación funciona incluso desconectando el cable de red o Wi-Fi.
+                  <span className="font-bold text-white">2. Autonomía Offline:</span> La herramienta opera plenamente sin conexión a internet.
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="font-bold text-white">3. Neutralidad Procesal:</span> No almacenamos metadatos de las causas, partes involucradas ni contenido de las fojas.
+                  <span className="font-bold text-white">3. Neutralidad:</span> Cero recolección de metadatos, nombres de partes o registros de archivo.
                 </li>
               </ul>
             </div>
@@ -361,7 +360,7 @@ export default function Modals({
         </div>
       )}
 
-      {/* 5. MODAL VERIFICAR PRIVACIDAD */}
+      {/* 5. MODAL AUDITORÍA DE PRIVACIDAD */}
       {activeModal === 'privacy' && (
         <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-xl w-full shadow-2xl relative max-h-[85vh] flex flex-col">
           <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white transition">
@@ -374,36 +373,29 @@ export default function Modals({
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Auditoría Técnica de Privacidad</h2>
-              <p className="text-xs text-slate-400">Procedimiento paso a paso para verificar la ausencia de tráfico web</p>
+              <p className="text-xs text-slate-400">Verificación empírica de ausencia de tráfico de red</p>
             </div>
           </div>
 
           <div className="overflow-y-auto space-y-4 text-xs text-slate-300 pr-2">
             <div className="p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl text-emerald-300">
-              <strong>Garantía Cero Servidor:</strong> A diferencia de conversores tradicionales que procesan los PDFs en servidores remotos, DocApp compila usando WebAssembly y JavaScript en el procesador local de su máquina.
+              <strong>Garantía Cero Servidor:</strong> A diferencia de utilidades PDF tradicionales, DocApp ejecuta el motor binario mediante WebAssembly directamente en el navegador del usuario.
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-bold text-white text-xs uppercase tracking-wider text-slate-400">Cómo auditar el comportamiento en 3 pasos:</h3>
-              
-              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1.5 font-mono text-[11px]">
-                <div className="text-indigo-400 font-bold">1. Abrir las Herramientas de Desarrollador</div>
-                <div className="text-slate-400">Presione <kbd className="bg-slate-800 px-1 py-0.5 rounded text-slate-200">F12</kbd> o clic derecho &rarr; <em>Inspeccionar</em>. Seleccione la pestaña <strong>Network</strong> (Red).</div>
+              <h3 className="font-bold text-white text-xs uppercase tracking-wider text-slate-400">Auditoría en 3 pasos:</h3>
+              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1 font-mono text-[11px]">
+                <div className="text-indigo-400 font-bold">1. Abrir DevTools</div>
+                <div className="text-slate-400">Presiona <kbd className="bg-slate-800 px-1 py-0.5 rounded text-slate-200">F12</kbd> y dirígete a la pestaña <strong>Network (Red)</strong>.</div>
               </div>
-
-              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1.5 font-mono text-[11px]">
-                <div className="text-indigo-400 font-bold">2. Filtrar por Tráfico de Datos</div>
-                <div className="text-slate-400">Seleccione el filtro <strong>Fetch / XHR</strong> y marque la casilla <strong>Preserve log</strong>.</div>
+              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1 font-mono text-[11px]">
+                <div className="text-indigo-400 font-bold">2. Filtrar peticiones</div>
+                <div className="text-slate-400">Selecciona la subpestaña <strong>Fetch / XHR</strong>.</div>
               </div>
-
-              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1.5 font-mono text-[11px]">
-                <div className="text-indigo-400 font-bold">3. Ejecutar Foliado y Exportación</div>
-                <div className="text-slate-400">Cargue un expediente confidencial de 50 hojas y presione <em>Compilar Expediente</em>. Constatará que el registro permanece en <strong>0 peticiones salientes (0 bytes subidos)</strong>.</div>
+              <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1 font-mono text-[11px]">
+                <div className="text-indigo-400 font-bold">3. Cargar y compilar documentos</div>
+                <div className="text-slate-400">Arrastra archivos y compílalos. Constatarás que se registran <strong>0 bytes transferidos</strong> hacia el exterior.</div>
               </div>
-            </div>
-
-            <div className="p-3 bg-slate-800/40 rounded-xl border border-slate-700/60 text-[11px] text-slate-400">
-              <strong>Prueba definitiva sin conexión:</strong> Cargue la página, desactive el Wi-Fi de su equipo y continúe utilizando la herramienta. La totalidad de las funciones de ensamblado y foliado seguirán operando con normalidad.
             </div>
           </div>
         </div>
@@ -421,27 +413,27 @@ export default function Modals({
               <Scale className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Términos de Licencia y Acuerdo de Servicio (SLA)</h2>
-              <p className="text-xs text-slate-400">Regulado bajo normativa chilena para el ejercicio forense y administrativo</p>
+              <h2 className="text-base font-bold text-white">Términos de Licencia y SLA</h2>
+              <p className="text-xs text-slate-400">Condiciones de servicio y marco de protección normativa</p>
             </div>
           </div>
 
           <div className="overflow-y-auto space-y-4 text-xs text-slate-300 pr-2 leading-relaxed">
             <div className="p-3.5 bg-emerald-950/25 border border-emerald-800/50 rounded-xl">
               <h3 className="font-bold text-emerald-300 text-xs mb-1">
-                1. Cumplimiento Ley N° 21.719 (Protección de Datos Personales en Chile)
+                1. Cumplimiento Ley N° 21.719 (Protección de Datos Personales)
               </h3>
               <p className="text-slate-300 text-[11px]">
-                En virtud de que el software opera bajo la modalidad de <strong>Procesamiento en el Extremo (Edge/Client-Side)</strong>, DocApp Legal Tech no recopila, procesa, transfiere ni almacena datos personales de litigantes, jueces o terceros. DocApp no reviste la calidad de «Responsable del Tratamiento» ni de «Encargado» al no tener acceso físico ni lógico a los archivos procesados.
+                Dado que la ejecución técnica transcurre en la memoria RAM del cliente, DocApp no almacena, recopila ni perfila datos de carácter personal. DocApp no reviste condición de Responsable ni Encargado del Tratamiento.
               </p>
             </div>
 
             <div className="p-3.5 bg-slate-800/60 border border-slate-700/60 rounded-xl">
               <h3 className="font-bold text-white text-xs mb-1">
-                2. Indemnidad del Secreto Profesional (Art. 247 Código Penal)
+                2. Indemnidad del Secreto Profesional y Comercial
               </h3>
               <p className="text-slate-300 text-[11px]">
-                La herramienta ha sido construida para que abogados y notarías den cabal cumplimiento al deber de sigilo y reserva procesal. Al no existir sincronización en servidores en la nube, se extingue el riesgo de filtraciones por accesos no autorizados a bases de datos corporativas de terceros.
+                Se resguarda el deber de reserva en el ejercicio forense, pericial, médico, contable o logístico al suprimir toda intermediación de servidores de terceros.
               </p>
             </div>
 
@@ -450,25 +442,16 @@ export default function Modals({
                 3. Acuerdo de Nivel de Servicio (SLA)
               </h3>
               <p className="text-slate-300 text-[11px]">
-                Al ejecutarse en un entorno estático alojado sobre redes perimetrales globales (CDN) con protección perimetral, la disponibilidad teórica de descarga del código fuente de la aplicación es de un <strong>99.9%</strong>. El desempeño del procesamiento algorítmico (velocidad de renderizado y foliado) dependerá exclusivamente de la capacidad de memoria RAM y procesador del equipo del usuario.
-              </p>
-            </div>
-
-            <div className="p-3.5 bg-slate-800/60 border border-slate-700/60 rounded-xl">
-              <h3 className="font-bold text-white text-xs mb-1">
-                4. Política Comercial y Ley N° 19.496 (Protección al Consumidor)
-              </h3>
-              <p className="text-slate-300 text-[11px]">
-                Las claves de licencia son personales e intransferibles conforme al plan contratado (Pase Diario, Mensual o Anual). El usuario podrá solicitar el desistimiento o reembolso íntegro durante los primeros 5 días hábiles siguientes a la compra si la herramienta presenta incompatibilidad técnica insalvable con su navegador.
+                La entrega estática de los paquetes de código mediante red global de distribución de contenido (CDN) asegura un <strong>99.9%</strong> de disponibilidad. El rendimiento en renderizado depende de la CPU y memoria RAM del equipo anfitrión.
               </p>
             </div>
 
             <div className="p-3.5 bg-slate-800/60 border border-slate-700/60 rounded-xl">
               <h3 className="font-bold text-rose-300 text-xs mb-1">
-                5. Exclusión de Responsabilidad por Pérdida de Claves
+                4. Exclusión de Responsabilidad Criptográfica
               </h3>
               <p className="text-slate-300 text-[11px]">
-                DocApp no dispone de llaves maestras ni mecanismos de recuperación («Backdoors») para los archivos generados con extensión <code>.enc</code>. El usuario asume toda la responsabilidad por el resguardo de la contraseña elegida.
+                DocApp no posee puertas traseras ni llaves de descifrado maestro para archivos <code>.enc</code>. La custodia de contraseñas es de exclusiva responsabilidad del usuario emisor.
               </p>
             </div>
           </div>

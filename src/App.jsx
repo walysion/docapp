@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
@@ -15,13 +15,14 @@ import { PDFDocument, degrees } from 'pdf-lib';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const MAX_FREE_PAGES = 25;
-const PRO_LICENSE_CODE = 'DOCAPP-PRO-LEGAL';
+
+// Tu clave secreta de dueño (para acceso PRO vitalicio sin pagar)
+const OWNER_MASTER_KEY = 'DOCAPP-OWNER-2026';
 
 export default function App() {
   const [pages, setPages] = useState([]);
-  const [isPro, setIsPro] = useState(() => {
-    return localStorage.getItem('docapp_is_pro') === 'true';
-  });
+  const [isPro, setIsPro] = useState(false);
+  const [licenseData, setLicenseData] = useState(null);
   
   const [folioEnabled, setFolioEnabled] = useState(false);
   const [watermarkEnabled, setWatermarkEnabled] = useState(false);
@@ -31,26 +32,123 @@ export default function App() {
   const [loadingSubText, setLoadingSubText] = useState('');
   const [activeModal, setActiveModal] = useState(null);
 
-  // Referencias para la carga masiva y para la herramienta de reemplazo de foja
   const fileInputRef = useRef(null);
   const replaceInputRef = useRef(null);
   const [targetReplaceId, setTargetReplaceId] = useState(null);
 
-  const handleActivateLicense = (key) => {
+  // Verificación de Licencia Guardada al Iniciar
+  useEffect(() => {
+    const stored = localStorage.getItem('docapp_license_data');
+    if (!stored) return;
+
+    try {
+      const data = JSON.parse(stored);
+      // Licencia de Dueño
+      if (data.isOwner) {
+        setIsPro(true);
+        setLicenseData(data);
+        return;
+      }
+
+      // Verificación de expiración (Pase 24h, mensual o anual)
+      if (data.expiresAt) {
+        const expirationDate = new Date(data.expiresAt);
+        const now = new Date();
+        if (now > expirationDate) {
+          localStorage.removeItem('docapp_license_data');
+          setIsPro(false);
+          setLicenseData(null);
+          return;
+        }
+      }
+
+      setIsPro(true);
+      setLicenseData(data);
+    } catch {
+      localStorage.removeItem('docapp_license_data');
+    }
+  }, []);
+
+  // Activación de Licencias (Lemon Squeezy API + Dueño)
+  const handleActivateLicense = async (key) => {
     if (!key) {
       setActiveModal('pricing');
       return;
     }
-    if (key.trim().toUpperCase() === PRO_LICENSE_CODE) {
+
+    const cleanKey = key.trim();
+
+    // 1. Acceso de Dueño
+    if (cleanKey.toUpperCase() === OWNER_MASTER_KEY) {
+      const ownerData = {
+        key: cleanKey,
+        plan: 'Administrador Vitalicio',
+        isOwner: true,
+        activatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('docapp_license_data', JSON.stringify(ownerData));
       setIsPro(true);
-      localStorage.setItem('docapp_is_pro', 'true');
+      setLicenseData(ownerData);
       setActiveModal(null);
-      alert('¡Licencia PRO activada con éxito!');
-    } else {
-      alert('Código de licencia no válido');
+      alert('¡Acceso Maestro de Propietario activado para siempre!');
+      return;
+    }
+
+    // 2. Validación de Clave en Lemon Squeezy
+    setIsLoading(true);
+    setLoadingText('Validando clave con Lemon Squeezy...');
+    setLoadingSubText('Consultando estado del pago...');
+
+    try {
+      // Generar o reutilizar un ID único para la máquina del cliente
+      let instanceId = localStorage.getItem('docapp_instance_id');
+      if (!instanceId) {
+        instanceId = 'web_' + Math.random().toString(36).substring(2, 11);
+        localStorage.setItem('docapp_instance_id', instanceId);
+      }
+
+      const response = await fetch('https://api.lemonsqueezy.com/v1/licenses/activate', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          license_key: cleanKey,
+          instance_name: instanceId
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.activated) {
+        const newLicense = {
+          key: cleanKey,
+          instanceId: result.instance?.id,
+          productName: result.meta?.product_name || 'DocApp PRO',
+          customerEmail: result.meta?.customer_email,
+          expiresAt: result.license_key?.expires_at, // Fecha límite enviada por Lemon Squeezy
+          activatedAt: new Date().toISOString(),
+          isOwner: false
+        };
+
+        localStorage.setItem('docapp_license_data', JSON.stringify(newLicense));
+        setIsPro(true);
+        setLicenseData(newLicense);
+        setActiveModal(null);
+        alert(`¡Licencia activada con éxito!\nPlan: ${newLicense.productName}`);
+      } else {
+        alert(result.error || 'La clave de licencia ingresada no es válida o ya ha expirado.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('No se pudo verificar la licencia. Comprueba tu conexión a internet.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Carga de Archivos Locales
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -93,7 +191,7 @@ export default function App() {
         const pdf = await loadingTask.promise;
 
         if (!isPro && newPagesList.length + pdf.numPages > MAX_FREE_PAGES) {
-          alert(`El plan básico gratuito permite hasta ${MAX_FREE_PAGES} páginas.`);
+          alert(`El plan básico gratuito permite hasta ${MAX_FREE_PAGES} páginas. Activa el pase PRO para procesar expedientes ilimitados.`);
           setActiveModal('pricing');
           break;
         }
@@ -125,14 +223,14 @@ export default function App() {
       setPages(newPagesList);
     } catch (err) {
       console.error(err);
-      alert('Error al leer el archivo.');
+      alert('Error al leer el archivo. Comprueba que no tenga claves de lectura.');
     } finally {
       setIsLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // --- NUEVO: Herramienta de Reemplazo de Foja Individual ---
+  // Reemplazar Foja
   const handleReplaceInit = (id) => {
     setTargetReplaceId(id);
     replaceInputRef.current.click();
@@ -163,7 +261,7 @@ export default function App() {
         newPages[targetIdx] = {
           id: Math.random().toString(36).substr(2, 9),
           fileData: fileBytes,
-          pageIndex: 0, // Toma la hoja 1 del PDF de reemplazo
+          pageIndex: 0,
           sourceName: file.name,
           originalPageNumber: 1,
           previewUrl: canvas.toDataURL('image/jpeg', 0.8),
@@ -172,8 +270,8 @@ export default function App() {
         };
         setPages(newPages);
       }
-    } catch (err) {
-      alert('Error al procesar el documento de sustitución.');
+    } catch {
+      alert('Error al sustituir la foja.');
     } finally {
       setIsLoading(false);
       replaceInputRef.current.value = '';
@@ -181,7 +279,7 @@ export default function App() {
     }
   };
 
-  // --- NUEVO: Herramienta de Extracción de Foja Original ---
+  // Extraer Foja Original
   const handleExtractPage = async (id) => {
     const pageData = pages.find(p => p.id === id);
     if (!pageData || pageData.isBlank) return;
@@ -193,15 +291,14 @@ export default function App() {
       const sourceDoc = await PDFDocument.load(pageData.fileData.slice(0));
       const [copied] = await pdfFinal.copyPages(sourceDoc, [pageData.pageIndex]);
       
-      // Respetar rotación
       const originalRotation = copied.getRotation().angle;
       if (pageData.rotation !== 0) copied.setRotation(degrees(originalRotation + pageData.rotation));
       
       pdfFinal.addPage(copied);
       const pdfBytes = await pdfFinal.save();
       descargarBlob(pdfBytes, `Foja_Extraida_${pageData.originalPageNumber}.pdf`, 'application/pdf');
-    } catch (err) {
-      alert('Fallo de I/O al extraer la pieza procesal.');
+    } catch {
+      alert('Error al extraer la pieza.');
     } finally {
       setIsLoading(false);
     }
@@ -263,7 +360,7 @@ export default function App() {
     try {
       const bytes = await generarBytesMaster(pages, isPro, watermarkEnabled, folioEnabled);
       descargarBlob(bytes, `Expediente_Master_${Date.now()}.pdf`, 'application/pdf');
-    } catch (err) {
+    } catch {
       alert('Error en el ensamblado del PDF.');
     } finally {
       setIsLoading(false);
@@ -299,7 +396,7 @@ export default function App() {
 
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       descargarBlob(zipBlob, `Expediente_Fojas_${Date.now()}.zip`, 'application/zip');
-    } catch (err) {
+    } catch {
       alert('Error al generar el archivo ZIP.');
     } finally {
       setIsLoading(false);
@@ -314,7 +411,7 @@ export default function App() {
       const bytes = await generarBytesMaster(pages, isPro, watermarkEnabled, folioEnabled);
       const vaultBlob = await encriptarWebCrypto(bytes, password);
       descargarBlob(vaultBlob, `Boveda_Expediente_${Date.now()}.enc`, 'application/octet-stream');
-    } catch (err) {
+    } catch {
       alert('Error durante el cifrado criptográfico.');
     } finally {
       setIsLoading(false);
@@ -333,18 +430,18 @@ export default function App() {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'Expediente Legal Foliado',
-          text: `Se acompaña expediente compilado de ${pages.length} fojas para su ingreso o archivo.`
+          title: 'Expediente Foliado',
+          text: `Se acompaña expediente compilado de ${pages.length} fojas.`
         });
       } else {
         descargarBlob(bytes, fileName, 'application/pdf');
-        const subject = encodeURIComponent(`Envío de Expediente Legal Foliado (${pages.length} fojas)`);
+        const subject = encodeURIComponent(`Envío de Expediente Foliado (${pages.length} fojas)`);
         const body = encodeURIComponent(
-          `Estimados/as,\n\nSe adjunta el expediente legal consolidado y foliado compuesto de ${pages.length} fojas.\n\nEl documento ha sido compilado localmente preservando el deber de reserva y secreto profesional.\n\nAtentamente,\nDocApp Legal.`
+          `Estimados/as,\n\nSe adjunta el expediente consolidado y foliado de ${pages.length} fojas.\n\nEl documento ha sido compilado en memoria local sin almacenamiento en nubes públicas.\n\nDocApp Legal Tech.`
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
       }
-    } catch (err) {
+    } catch {
       alert('No se pudo abrir el despachador de correo.');
     } finally {
       setIsLoading(false);
@@ -353,13 +450,13 @@ export default function App() {
 
   const handleCopySummary = () => {
     const summary = 
-`--- CERTIFICADO DE COMPILACIÓN PROCESAL ---
+`--- CERTIFICADO DE INTEGRIDAD DOCUMENTAL ---
 Fecha: ${new Date().toLocaleDateString('es-CL')}
 Total de Fojas: ${pages.length}
-Foliación Aplicada: ${folioEnabled && isPro ? 'Sí (Correlativa F. 001...)' : 'Sin foliar'}
+Foliación Aplicada: ${folioEnabled && isPro ? 'Sí (Correlativa)' : 'Sin foliar'}
 Sello de Confidencialidad: ${watermarkEnabled && isPro ? 'Activo' : 'Inactivo'}
 Entorno de Procesamiento: 100% Client-Side (Cumplimiento Ley N° 21.719)
-Generado por: DocApp Legal Tech`;
+Generado por: DocApp`;
     navigator.clipboard.writeText(summary);
   };
 
