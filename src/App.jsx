@@ -1,16 +1,18 @@
 import React, { useState, useRef } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Workspace from './components/Workspace';
+import Footer from './components/Footer';
 import Modals from './components/Modals';
 import { encriptarWebCrypto, desencriptarWebCrypto } from './utils/cryptoService';
 import { generarBytesMaster, descargarBlob } from './utils/pdfEngine';
 import JSZip from 'jszip';
 import { PDFDocument, degrees } from 'pdf-lib';
 
-// Configuración de Worker PDF.js compatible con navegadores
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const MAX_FREE_PAGES = 25;
 const PRO_LICENSE_CODE = 'DOCAPP-PRO-LEGAL';
@@ -21,19 +23,19 @@ export default function App() {
     return localStorage.getItem('docapp_is_pro') === 'true';
   });
   
-  // Toggles de herramientas
   const [folioEnabled, setFolioEnabled] = useState(false);
   const [watermarkEnabled, setWatermarkEnabled] = useState(false);
 
-  // Estados de carga y modales
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
   const [loadingSubText, setLoadingSubText] = useState('');
-  const [activeModal, setActiveModal] = useState(null); // 'pricing', 'export', 'password', 'privacy', 'legal'
+  const [activeModal, setActiveModal] = useState(null);
 
+  // Referencias para la carga masiva y para la herramienta de reemplazo de foja
   const fileInputRef = useRef(null);
+  const replaceInputRef = useRef(null);
+  const [targetReplaceId, setTargetReplaceId] = useState(null);
 
-  // Manejo de Licencias
   const handleActivateLicense = (key) => {
     if (!key) {
       setActiveModal('pricing');
@@ -49,7 +51,6 @@ export default function App() {
     }
   };
 
-  // Procesamiento de Archivos Locales
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -64,39 +65,41 @@ export default function App() {
         let fileBytes;
         let sourceName = file.name;
 
-        // Bóveda .ENC
         if (file.name.endsWith('.enc')) {
           const pass = prompt(`Bóveda Asegurada: [${file.name}]\nIngresa la contraseña criptográfica:`);
           if (!pass) continue;
 
-          setLoadingSubText('Desencriptando AES-GCM...');
+          setLoadingSubText('Desencriptando AES-GCM local...');
           const arrayBuffer = await file.arrayBuffer();
           fileBytes = await desencriptarWebCrypto(arrayBuffer, pass);
           sourceName = file.name.replace('.enc', ' (Desencriptado)');
         } else {
-          // Validar Magic Bytes %PDF-
           const arrayBuffer = await file.arrayBuffer();
-          const header = new Uint8Array(arrayBuffer, 0, 5);
-          const isPDF = header[0] === 0x25 && header[1] === 0x24 && header[2] === 0x44 && header[3] === 0x46 && header[4] === 0x2d; // %PDF-
+          const headerChunk = new Uint8Array(arrayBuffer.slice(0, 1024));
+          const headerString = String.fromCharCode(...headerChunk);
+          const isPDF = headerString.includes('%PDF-');
           
+          if (!isPDF) {
+            alert(`El archivo "${file.name}" no cuenta con una estructura PDF válida.`);
+            continue;
+          }
           fileBytes = new Uint8Array(arrayBuffer);
         }
 
-        // Cargar en PDF.js de forma aislada
         const loadingTask = pdfjsLib.getDocument({
           data: fileBytes.slice(0),
-          isEvalSupported: false // Blindaje contra ejecución de scripts en PDF
+          isEvalSupported: false
         });
         const pdf = await loadingTask.promise;
 
         if (!isPro && newPagesList.length + pdf.numPages > MAX_FREE_PAGES) {
-          alert(`El plan básico gratuito permite hasta ${MAX_FREE_PAGES} páginas. Activa el pase PRO para ilimitado.`);
+          alert(`El plan básico gratuito permite hasta ${MAX_FREE_PAGES} páginas.`);
           setActiveModal('pricing');
           break;
         }
 
         for (let i = 1; i <= pdf.numPages; i++) {
-          setLoadingSubText(`Renderizando hoja ${i} de ${pdf.numPages}...`);
+          setLoadingSubText(`Procesando foja ${i} de ${pdf.numPages}...`);
           const page = await pdf.getPage(i);
           const viewport = page.getViewport({ scale: 0.5 });
           const canvas = document.createElement('canvas');
@@ -122,14 +125,88 @@ export default function App() {
       setPages(newPagesList);
     } catch (err) {
       console.error(err);
-      alert('Error al leer el archivo. Comprueba que el PDF no esté protegido contra lectura.');
+      alert('Error al leer el archivo.');
     } finally {
       setIsLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // Acciones en Hojas
+  // --- NUEVO: Herramienta de Reemplazo de Foja Individual ---
+  const handleReplaceInit = (id) => {
+    setTargetReplaceId(id);
+    replaceInputRef.current.click();
+  };
+
+  const handleReplaceFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file || file.type !== 'application/pdf') return;
+
+    setIsLoading(true);
+    setLoadingText('Sustituyendo foja seleccionada...');
+    
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const fileBytes = new Uint8Array(arrayBuffer);
+      
+      const loadingTask = pdfjsLib.getDocument({ data: fileBytes.slice(0), isEvalSupported: false });
+      const pdf = await loadingTask.promise;
+      const page = await pdf.getPage(1);
+      
+      const viewport = page.getViewport({ scale: 0.5 });
+      const canvas = document.createElement('canvas');
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+      
+      const targetIdx = pages.findIndex(p => p.id === targetReplaceId);
+      if (targetIdx !== -1) {
+        const newPages = [...pages];
+        newPages[targetIdx] = {
+          id: Math.random().toString(36).substr(2, 9),
+          fileData: fileBytes,
+          pageIndex: 0, // Toma la hoja 1 del PDF de reemplazo
+          sourceName: file.name,
+          originalPageNumber: 1,
+          previewUrl: canvas.toDataURL('image/jpeg', 0.8),
+          rotation: 0,
+          isBlank: false
+        };
+        setPages(newPages);
+      }
+    } catch (err) {
+      alert('Error al procesar el documento de sustitución.');
+    } finally {
+      setIsLoading(false);
+      replaceInputRef.current.value = '';
+      setTargetReplaceId(null);
+    }
+  };
+
+  // --- NUEVO: Herramienta de Extracción de Foja Original ---
+  const handleExtractPage = async (id) => {
+    const pageData = pages.find(p => p.id === id);
+    if (!pageData || pageData.isBlank) return;
+
+    setIsLoading(true);
+    setLoadingText('Extrayendo foja original sin marcas...');
+    try {
+      const pdfFinal = await PDFDocument.create();
+      const sourceDoc = await PDFDocument.load(pageData.fileData.slice(0));
+      const [copied] = await pdfFinal.copyPages(sourceDoc, [pageData.pageIndex]);
+      
+      // Respetar rotación
+      const originalRotation = copied.getRotation().angle;
+      if (pageData.rotation !== 0) copied.setRotation(degrees(originalRotation + pageData.rotation));
+      
+      pdfFinal.addPage(copied);
+      const pdfBytes = await pdfFinal.save();
+      descargarBlob(pdfBytes, `Foja_Extraida_${pageData.originalPageNumber}.pdf`, 'application/pdf');
+    } catch (err) {
+      alert('Fallo de I/O al extraer la pieza procesal.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleRotate = (id) => {
     setPages(pages.map(p => p.id === id ? { ...p, rotation: (p.rotation + 90) % 360 } : p));
   };
@@ -179,7 +256,6 @@ export default function App() {
     ]);
   };
 
-  // Exportaciones
   const handleExportMaster = async () => {
     setActiveModal(null);
     setIsLoading(true);
@@ -222,7 +298,7 @@ export default function App() {
       }
 
       const zipBlob = await zip.generateAsync({ type: 'blob' });
-      descargarBlob(zipBlob, `Expediente_Individual_${Date.now()}.zip`, 'application/zip');
+      descargarBlob(zipBlob, `Expediente_Fojas_${Date.now()}.zip`, 'application/zip');
     } catch (err) {
       alert('Error al generar el archivo ZIP.');
     } finally {
@@ -245,14 +321,63 @@ export default function App() {
     }
   };
 
+  const handleShareEmail = async () => {
+    setActiveModal(null);
+    setIsLoading(true);
+    setLoadingText('Preparando archivo para despacho por correo...');
+    try {
+      const bytes = await generarBytesMaster(pages, isPro, watermarkEnabled, folioEnabled);
+      const fileName = `Expediente_Foliado_${Date.now()}.pdf`;
+      const file = new File([bytes], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Expediente Legal Foliado',
+          text: `Se acompaña expediente compilado de ${pages.length} fojas para su ingreso o archivo.`
+        });
+      } else {
+        descargarBlob(bytes, fileName, 'application/pdf');
+        const subject = encodeURIComponent(`Envío de Expediente Legal Foliado (${pages.length} fojas)`);
+        const body = encodeURIComponent(
+          `Estimados/as,\n\nSe adjunta el expediente legal consolidado y foliado compuesto de ${pages.length} fojas.\n\nEl documento ha sido compilado localmente preservando el deber de reserva y secreto profesional.\n\nAtentamente,\nDocApp Legal.`
+        );
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+    } catch (err) {
+      alert('No se pudo abrir el despachador de correo.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopySummary = () => {
+    const summary = 
+`--- CERTIFICADO DE COMPILACIÓN PROCESAL ---
+Fecha: ${new Date().toLocaleDateString('es-CL')}
+Total de Fojas: ${pages.length}
+Foliación Aplicada: ${folioEnabled && isPro ? 'Sí (Correlativa F. 001...)' : 'Sin foliar'}
+Sello de Confidencialidad: ${watermarkEnabled && isPro ? 'Activo' : 'Inactivo'}
+Entorno de Procesamiento: 100% Client-Side (Cumplimiento Ley N° 21.719)
+Generado por: DocApp Legal Tech`;
+    navigator.clipboard.writeText(summary);
+  };
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-900 text-slate-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-slate-900 text-slate-50 font-sans">
       <input 
         type="file" 
         ref={fileInputRef} 
         onChange={handleFileUpload} 
         accept="application/pdf, .enc" 
         multiple 
+        className="hidden" 
+      />
+      <input 
+        type="file" 
+        ref={replaceInputRef} 
+        onChange={handleReplaceFile} 
+        accept="application/pdf" 
         className="hidden" 
       />
 
@@ -262,6 +387,7 @@ export default function App() {
         onClear={() => setPages([])}
         onAddFiles={() => fileInputRef.current.click()}
         onOpenExport={() => setActiveModal('export')}
+        onOpenPricing={() => setActiveModal('pricing')}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -283,6 +409,8 @@ export default function App() {
           onAddFiles={() => fileInputRef.current.click()}
           onRotate={handleRotate}
           onDuplicate={handleDuplicate}
+          onReplaceInit={handleReplaceInit}
+          onExtractPage={handleExtractPage}
           onDelete={handleDelete}
           isLoading={isLoading}
           loadingText={loadingText}
@@ -290,23 +418,19 @@ export default function App() {
         />
       </div>
 
-      <footer className="bg-slate-800/90 border-t border-slate-700/60 px-6 py-2.5 flex justify-between items-center text-[11px] text-slate-400 shrink-0">
-        <div>&copy; 2026 DocApp Legal Tech. Procesamiento Client-Side Estricto.</div>
-        <div className="flex gap-4">
-          <button onClick={() => setActiveModal('pricing')} className="hover:text-indigo-400 transition font-medium">Planes y Precios</button>
-          <button onClick={() => setActiveModal('privacy')} className="hover:text-indigo-400 transition">Verificar Privacidad</button>
-          <button onClick={() => setActiveModal('legal')} className="hover:text-indigo-400 transition">Términos y SLA</button>
-        </div>
-      </footer>
+      <Footer onOpenModal={(modalName) => setActiveModal(modalName)} />
 
       <Modals 
         activeModal={activeModal}
         onClose={() => setActiveModal(null)}
         isPro={isPro}
+        pagesCount={pages.length}
         onActivateLicense={handleActivateLicense}
         onExportMaster={handleExportMaster}
         onExportZip={handleExportZip}
         onExportVault={handleExportVault}
+        onShareEmail={handleShareEmail}
+        onCopySummary={handleCopySummary}
         onSwitchToPasswordModal={(goBack) => setActiveModal(goBack ? 'export' : 'password')}
       />
     </div>
